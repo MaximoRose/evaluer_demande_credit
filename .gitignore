@@ -1,1 +1,10 @@
 /temp_img/
+/processed_data/advanced_FE.csv
+/processed_data/kernel02_install_payments.csv
+/processed_data/kernel03_install_payments.csv
+/processed_data/kernel03_install_payments_Train_Only.csv
+/processed_data/OCkernel_customized.csv
+/processed_data/training_nan_removal.csv
+/input_data
+/model_outputs
+
