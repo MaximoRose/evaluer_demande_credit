@@ -1,51 +1,25 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from sklearn.metrics import confusion_matrix
 import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 DEFAULT_CATEGORY_MEAN_FREQ = 0.03
 DEFAULT_MAX_PERCENTAGE_NAN_VAL = 0.3
 
 
 #################################################################################
-# ---------------------------------- AED
+# ---------------------------------- TRANSFORM COLUMNS
 #################################################################################
-def get_highly_correlated_features(df, threshold) :
-    correlation_matrix = df.corr()
-    highly_correlated = correlation_matrix.abs() > threshold
-
-    # Create an empty dataframe to store the results
-    correlation_results = pd.DataFrame(columns=['Feature 1', 'Feature 2', 'Correlation'])
-
-    # Iterate over the highly correlated features
-    for feature1 in highly_correlated:
-        for feature2 in highly_correlated[feature1][highly_correlated[feature1]].index:
-            # Exclude self-correlations & Correlation already listed in reverse order
-            if (feature1 != feature2) & (correlation_results[(correlation_results['Feature 1'] == feature2) & (correlation_results['Feature 2'] == feature1)].shape[0] == 0):
-                correlation = correlation_matrix.loc[feature1, feature2]
-                correlation_results = correlation_results.append({
-                    'Feature 1': feature1,
-                    'Feature 2': feature2,
-                    'Correlation': correlation
-                }, ignore_index=True)
-
-    # Display the dataframe with highly correlated features
-    return correlation_results
 
 
-#################################################################################
-# ---------------------------------- PREPROCESSING FUNCTIONS
-#################################################################################
-# TRAITEMENT DES FEATURES OBJETS
-# -------
 def one_hot_encoder(df, categorical_columns=[], nan_as_category=True, treshold=DEFAULT_CATEGORY_MEAN_FREQ):
     original_columns = list(df.columns)
     if categorical_columns == []:
         categorical_columns = [col for col in df.columns if df[col].dtype == 'object']
         # print("Cat col in OHE : ", categorical_columns)
     # MBR TEST SANS MODIFIER LES LOW CARDINALS
-    df_res = regroup_low_cardinals(df, categorical_columns=categorical_columns, treshold=treshold)  # Ajout MBR pour eviter overfit
+    df_res = regroup_low_cardinals(df, categorical_columns=categorical_columns,
+                                   treshold=treshold)  # Ajout MBR pour eviter overfit
     df_res = pd.get_dummies(df_res, columns=categorical_columns, dummy_na=nan_as_category)
     # df_res = pd.get_dummies(df, columns=categorical_columns, dummy_na=nan_as_category)
     new_columns = [c for c in df_res.columns if c not in original_columns]
@@ -128,8 +102,67 @@ def replace_infinite_by_nan(df, list_new_columns):
     return df
 
 
-# OPTIMIZE MEMORY
-# -------
+#################################################################################
+# ---------------------------------- ANALYSE CORRELATIONS
+#################################################################################
+def get_highly_correlated_features(df, threshold):
+    correlation_matrix = df.corr()
+    highly_correlated = correlation_matrix.abs() > threshold
+
+    # Create an empty dataframe to store the results
+    correlation_results = pd.DataFrame(columns=['Feature 1', 'Feature 2', 'Correlation'])
+
+    # Iterate over the highly correlated features
+    for feature1 in highly_correlated:
+        for feature2 in highly_correlated[feature1][highly_correlated[feature1]].index:
+            # Exclude self-correlations & Correlation already listed in reverse order
+            if (feature1 != feature2) & (correlation_results[(correlation_results['Feature 1'] == feature2) & (
+                    correlation_results['Feature 2'] == feature1)].shape[0] == 0):
+                correlation = correlation_matrix.loc[feature1, feature2]
+                correlation_results = correlation_results.append({
+                    'Feature 1': feature1,
+                    'Feature 2': feature2,
+                    'Correlation': correlation
+                }, ignore_index=True)
+
+    # Display the dataframe with highly correlated features
+    return correlation_results
+
+def display_barchart_bivar_correlation(df_poids, col_nom = 'feature', col_corr='poids', variable_ref='TARGET', coef='Pearson') :
+    feat_corrs = df_poids
+    plt.figure(figsize=(14, 10))
+    sns.color_palette("rocket", as_cmap=True)
+    sns.barplot(x=feat_corrs[col_corr], y=feat_corrs[col_nom], orient='h', palette="rocket")
+    # sns.despine(left=True, bottom=True) # Vire les axes
+    plt.plot
+    # Setting the label for x-axis
+    plt.xlabel("FEATURES")
+    # Setting the label for y-axis
+    plt.ylabel("Coef / "+variable_ref)
+    # Setting the title for the graph
+    plt.title("Coefficients de correlation ("+coef+")")
+    plt.xticks(rotation=90)
+    plt.show()
+    return
+
+
+# ------------------ VISUALISATION
+def display_corrmat(corr, annot=True):
+    sns.set(context="paper", font_scale=1.2)
+    # Mask for upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+    # Plot
+    f, ax = plt.subplots(figsize=(12, 12))
+    f.text(0.45, 0.93, "Coefficients de correlation de Pearson", ha='center', fontsize=18)
+    sns.heatmap(corr, mask=mask, square=True, linewidths=0.01, cmap="coolwarm", annot=annot, vmin=-1, vmax=1,
+                center=0)
+    plt.tight_layout()
+    return
+
+
+#################################################################################
+# ---------------------------------- OPTIMISATION
+#################################################################################
 def reduce_memory(df):
     """
     Reduce memory usage of a dataframe by setting data types.
@@ -166,88 +199,3 @@ def reduce_memory(df):
     memory_reduction = 100 * (start_mem - end_mem) / start_mem
     # print('Final memory usage is: {:.2f} MB - decreased by {:.1f}%'.format(end_mem, memory_reduction))
     return df
-
-
-# ------------------ VISUALISATION
-def display_corrmat(corr, annot=True):
-    sns.set(context="paper", font_scale=1.2)
-    # Mask for upper triangle
-    mask = np.triu(np.ones_like(corr, dtype=bool))
-    # Plot
-    f, ax = plt.subplots(figsize=(12, 12))
-    f.text(0.45, 0.93, "Coefficients de correlation de Pearson", ha='center', fontsize=18)
-    sns.heatmap(corr, mask=mask, square=True, linewidths=0.01, cmap="coolwarm", annot=annot, vmin=-1, vmax=1,
-                center=0)
-    plt.tight_layout()
-    return
-
-
-#################################################################################
-# ------------------------------- MODEL ANALYSIS FUNCTIONS
-#################################################################################
-# GENERAL
-def grid_resultification(grid):
-    res = pd.DataFrame(grid.cv_results_)
-    keepcols = [col for col in res.columns if "split" not in col]
-    res_light = res[keepcols]
-    # res_light = res_light.sort_values(by = ['rank_test_r2', 'rank_test_neg_mean_absolute_error'])
-    return res, res_light
-
-
-# CLASSIFICATION
-def matrice_confusion(y_true, y_pred, complement_titre, path, nomfichier):
-    fig, ax = plt.subplots(figsize=(12, 8))
-    mat = np.round(confusion_matrix(y_true=y_true, y_pred=y_pred, normalize='true'), 2)
-    sns.heatmap(mat, annot=True, fmt='.2f')
-    plt.ylabel('Categories reelles')
-    plt.xlabel('Categorie predites')
-    plt.title('Matrice de confusion ' + complement_titre + ' \n', fontsize=18)
-    plt.savefig(path + nomfichier)
-    plt.show()
-    return path + nomfichier
-
-
-# LOGREG
-def logreg_featimps(estimator, feature_names, n_coefs=40):
-    coefficients = estimator.coef_[0]
-    feat_names = np.array(feature_names)  # X.columns.tolist()
-    resd_df = pd.DataFrame()
-    resd_df['feature'] = feat_names
-    resd_df['coeflogreg'] = coefficients
-    # Sort coefficients in descending order and get the 40 largest coefficients
-    top40_coefficients = np.argsort(np.abs(coefficients))[::-1][:n_coefs]
-    # Plot the values of the selected coefficients
-    plt.figure(figsize=(12, 6))
-    plt.bar(range(len(top40_coefficients)), coefficients[top40_coefficients])
-    plt.xticks(range(len(top40_coefficients)), feat_names[top40_coefficients], rotation=90)
-    plt.xlabel('Feature')
-    plt.ylabel('Coefficient Value')
-    plt.title(f'Top {n_coefs} Coefficients of Logistic Regression Model')
-    plt.show()
-    return resd_df
-
-
-# RANDOM FOREST
-def feature_importance_rf(xtrain, modelrf, top=True, size=20):
-    feat_imps = pd.DataFrame()
-    feat_imps['feature'] = xtrain.columns
-    feat_imps['poids'] = modelrf.feature_importances_
-    # feat_imps['parametres'] = [BESTTESTDESC for i in range(len(xtrain.columns))]
-    if top:
-        feat_imps = feat_imps.sort_values(by=['poids'], ascending=False).head(size)
-    plt.figure(figsize=(14, 10))
-    sns.color_palette("rocket", as_cmap=True)
-    sns.barplot(x=feat_imps['poids'], y=feat_imps['feature'], orient='h', palette="rocket")
-    # sns.despine(left=True, bottom=True) # Vire les axes
-    plt.plot
-    # Setting the label for x-axis
-    plt.xlabel("FEATURES")
-    # Setting the label for y-axis
-    plt.ylabel("BETA_i")
-    # Setting the title for the graph
-    plt.title("Coefficients des features avec le Random Forest")
-    plt.xticks(rotation=90)
-    plt.show()
-    return feat_imps
-
-

@@ -1,5 +1,5 @@
 import pandas as pd
-import utilitaires_810 as u810
+import outils_feature_engineering_810 as fe810
 import numpy as np
 import gc
 # Eviter d'avoir les warning de caveheat
@@ -174,7 +174,7 @@ def get_age_label(days_birth):
 
 def process_application(df, encoding_treshold=DEFAULT_CATEGORY_MEAN_FREQ,
                         nan_treshold=DEFAULT_EMPTY_FEAT_TRESHOLD_FOR_ROW):
-    df = u810.remove_too_nany_observations(df, treshold=nan_treshold)
+    df = fe810.remove_too_nany_observations(df, treshold=nan_treshold)
     # Valeur aberrante
     df.loc[:, 'DAYS_EMPLOYED'].replace(365243, np.nan, inplace=True)
 
@@ -222,10 +222,10 @@ def process_application(df, encoding_treshold=DEFAULT_CATEGORY_MEAN_FREQ,
                              'Higher education', 'Academic degree'])
     print()
 
-    df_ohe, new_cols = u810.one_hot_encoder(df=df, nan_as_category=False, treshold=encoding_treshold)
+    df_ohe, new_cols = fe810.one_hot_encoder(df=df, nan_as_category=False, treshold=encoding_treshold)
 
     # Comme on a peut etre fait des divisions par 0 ...
-    df_ohe = u810.replace_infinite_by_nan(df=df_ohe, list_new_columns=df_ohe.columns.tolist())
+    df_ohe = fe810.replace_infinite_by_nan(df=df_ohe, list_new_columns=df_ohe.columns.tolist())
 
     return df_ohe
 
@@ -241,7 +241,7 @@ def bureau_and_balance(num_rows=None, nan_as_category=True, path='./input_data/'
                         ]
 
     bureau = pd.read_csv(path + 'bureau.csv', nrows=num_rows)
-    bureau = u810.remove_too_nany_observations(bureau, treshold=nan_treshold)
+    bureau = fe810.remove_too_nany_observations(bureau, treshold=nan_treshold)
 
     bureau.loc[:, 'HAS_CLOSED'] = 0
     bureau.loc[bureau['CREDIT_ACTIVE'] == 'Closed', 'HAS_CLOSED'] = 1
@@ -323,9 +323,9 @@ def bureau_and_balance(num_rows=None, nan_as_category=True, path='./input_data/'
     # del closed, closed_agg, bureau
     # gc.collect()
     # Comme on a peut etre fait des divisions par 0 ...
-    bureau_agg, bureau_agg_cat = u810.one_hot_encoder(df=bureau_agg, nan_as_category=nan_as_category)
+    bureau_agg, bureau_agg_cat = fe810.one_hot_encoder(df=bureau_agg, nan_as_category=nan_as_category)
 
-    bureau_agg = u810.replace_infinite_by_nan(df=bureau_agg, list_new_columns=bureau_agg.columns.tolist())
+    bureau_agg = fe810.replace_infinite_by_nan(df=bureau_agg, list_new_columns=bureau_agg.columns.tolist())
     return bureau_agg
 
 
@@ -352,9 +352,9 @@ def previous_applications(num_rows=None, nan_as_category=False, path='./input_da
                       'HOUR_APPR_PROCESS_START'
                       ]
     prev = pd.read_csv(path + 'previous_application.csv', nrows=num_rows)
-    prev = u810.remove_too_nany_observations(prev)
+    prev = fe810.remove_too_nany_observations(prev)
     install = pd.read_csv(path + 'installments_payments.csv', nrows=num_rows)
-    install = u810.remove_too_nany_observations(install)
+    install = fe810.remove_too_nany_observations(install)
 
     # Pas d'interet de conserver les demarches abandonnees, elles faussent nos indicateurs
     prev = prev[(prev['NAME_CONTRACT_STATUS']!='Canceled') & (prev['NAME_CONTRACT_STATUS']!='Unused offer')]
@@ -490,7 +490,7 @@ def previous_applications(num_rows=None, nan_as_category=False, path='./input_da
 
     # prev.drop(columns = ['PREV_HAS_ACTIVE_SUM'], inplace=True)
     # Comme on a peut etre fait des divisions par 0 ...
-    prev = u810.replace_infinite_by_nan(df=prev, list_new_columns=prev.columns.tolist())
+    prev = fe810.replace_infinite_by_nan(df=prev, list_new_columns=prev.columns.tolist())
     prev.drop(columns=['PREV_HAS_ACTIVE_SUM'], inplace=True)
     return prev
 
@@ -503,7 +503,7 @@ def pos_cash(num_rows=None, nan_as_category=False, path='./input_data/'):
     ]
     pos = pd.read_csv(path + 'POS_CASH_balance.csv', nrows=num_rows)
     pos.drop(columns=col_to_remove, inplace=True)
-    pos, cat_cols = u810.one_hot_encoder(pos, nan_as_category=nan_as_category)
+    pos, cat_cols = fe810.one_hot_encoder(pos, nan_as_category=nan_as_category)
     # Features
     aggregations = {
         # 'MONTHS_BALANCE': ['mean'],
@@ -521,14 +521,14 @@ def pos_cash(num_rows=None, nan_as_category=False, path='./input_data/'):
     gc.collect()
 
     # Comme on a peut etre fait des divisions par 0 ...
-    pos_agg = u810.replace_infinite_by_nan(df=pos_agg, list_new_columns=pos_agg.columns.tolist())
+    pos_agg = fe810.replace_infinite_by_nan(df=pos_agg, list_new_columns=pos_agg.columns.tolist())
     return pos_agg
 
 
 # Preprocess installments_payments.csv
 def installments_payments(num_rows=None, nan_as_category=False, path='./input_data/'):
     ins = pd.read_csv(path + 'installments_payments.csv', nrows=num_rows)
-    ins, cat_cols = u810.one_hot_encoder(ins, nan_as_category=nan_as_category)
+    ins, cat_cols = fe810.one_hot_encoder(ins, nan_as_category=nan_as_category)
 
     # On suprrimer les variables les moins correlees a la TARGET entre deux variables tres correlees
     col_to_rem = ['AMT_INSTALMENT',
@@ -567,7 +567,7 @@ def installments_payments(num_rows=None, nan_as_category=False, path='./input_da
     gc.collect()
 
     # Comme on a peut etre fait des divisions par 0 ...
-    ins_agg = u810.replace_infinite_by_nan(df=ins_agg, list_new_columns=ins_agg.columns.tolist())
+    ins_agg = fe810.replace_infinite_by_nan(df=ins_agg, list_new_columns=ins_agg.columns.tolist())
     return ins_agg
 
 
@@ -613,7 +613,7 @@ def credit_card_balance(num_rows=None, nan_as_category=False, path='./input_data
     gc.collect()
 
     # Comme on a peut etre fait des divisions par 0 ...
-    cc_agg = u810.replace_infinite_by_nan(df=cc_agg, list_new_columns=cc_agg.columns.tolist())
+    cc_agg = fe810.replace_infinite_by_nan(df=cc_agg, list_new_columns=cc_agg.columns.tolist())
     return cc_agg
 
 
@@ -658,5 +658,5 @@ def full_feature_engineering(df_input, df_folder, encoding_treshold=DEFAULT_CATE
         gc.collect()
     # # MBR : On ne va pas prendre les colonnes trop vide, car ca implique qu'on impute gracement = donc biais
     # df = u810.remove_too_nany_columns(df=df, treshold=0.4)
-    df = u810.reduce_memory(df)
+    df = fe810.reduce_memory(df)
     return df
