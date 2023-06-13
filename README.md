@@ -12,5 +12,12 @@
 ## Analyse et modelisations
 
 
+## Visualisations clients
+- 5_dashboard.py
+
+
+## Test 
+Tous les fichiers commencant par "wip_"
+
 
 

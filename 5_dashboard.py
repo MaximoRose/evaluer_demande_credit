@@ -3,52 +3,68 @@ import pandas as pd
 import mbr_kernel as mkn
 import os.path
 import time
+import json
+import requests
 
-CURRENT_DATA_PATH = './st_content/processed_new_data.csv'
+PREPROCESSED_DATA_PATH = './st_content/processed_new_data.csv'
+ORIGINAL_DATA_PATH = './st_content/original_data.csv'
+CUSTOM_CSS = './st_content/style.css'
+HEROKU_APP_PREDICTION_URI = "https://oc-ds-p7.herokuapp.com/solvability_prediction"
+
+
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
+    return
+
+
+def predict_with_heroku_app(lst_columns, associated_data):
+    dict_customer = {k: v for k, v in zip(lst_columns, associated_data)}
+    input_json = json.dumps(dict_customer)
+    response = requests.post(HEROKU_APP_PREDICTION_URI, data=input_json)
+    return response.text
 
 
 def main():
-    MLFLOW_URI = 'http://127.0.0.1:5000/invocations'
-    CORTEX_URI = 'http://0.0.0.0:8890/'
-    RAY_SERVE_URI = 'http://127.0.0.1:8000/regressor'
+    local_css(CUSTOM_CSS)
+
+    MODEL_URI = 'http://127.0.0.1:5001/invocations'
 
     new_data = None
     predict_btn = None
+    sk_id_combo = None
 
     # ----------- Sidebar
-    page = st.sidebar.selectbox('Navigation', ["Evaluer un dossier", "Charger donnees", "Predire lot"])
+    page = st.sidebar.selectbox('Navigation', ["Evaluer un dossier", "Charger donnees"])  # , "Predire lot"
 
     st.sidebar.markdown("""---""")
     st.sidebar.write("Créée by Massimo Bruni")
     # st.sidebar.image("assets/logo.png", width=100)
     if page == "Evaluer un dossier":
-        st.title('Aide a la decision\nSolvabilité client·e')
+        st.title('Predire la solvabilité client·e')
+        if os.path.exists(PREPROCESSED_DATA_PATH):
+            date_creation_fichier = time.ctime(os.path.getctime(PREPROCESSED_DATA_PATH))
+            st.write("Data's date : " + str(date_creation_fichier))
+            current_data = pd.read_csv(PREPROCESSED_DATA_PATH)
+            sk_id_combo = st.selectbox("Selectionnez l'identifiant client : ",
+                                       current_data['SK_ID_CURR'].values.tolist())
+            if sk_id_combo is not None:
+                liste_colonnes = current_data.drop(columns='SK_ID_CURR').columns.tolist()
+                data_client = current_data[current_data['SK_ID_CURR'] == sk_id_combo].drop(
+                    columns=['SK_ID_CURR']).values
 
-        revenu_med = st.number_input('Revenu médian dans le secteur (en 10K de dollars)',
-                                     min_value=0., value=3.87, step=1.)
+                prediction = predict_with_heroku_app(lst_columns=liste_colonnes,
+                                                     associated_data=data_client.tolist()[0])
 
-        age_med = st.number_input('Âge médian des maisons dans le secteur',
-                                  min_value=0., value=28., step=1.)
+                if prediction == '0':
+                    text_result = "<span class='ok_customer'> OK </span>"
+                    st.markdown(text_result, unsafe_allow_html=True)
+                else:
+                    text_result = "<span class='nok_customer'> NOT OK </span>"
+                    st.markdown(text_result, unsafe_allow_html=True)
+        else:
+            st.markdown("Aucun jeu de donnees n'a encore ete charge. Utilisez la navigation pour charger un fichier")
 
-        nb_piece_med = st.number_input('Nombre moyen de pièces',
-                                       min_value=0., value=5., step=1.)
-
-        nb_chambre_moy = st.number_input('Nombre moyen de chambres',
-                                         min_value=0., value=1., step=1.)
-
-        taille_pop = st.number_input('Taille de la population dans le secteur',
-                                     min_value=0, value=1425, step=100)
-
-        occupation_moy = st.number_input('Occupation moyenne de la maison (en nombre d\'habitants)',
-                                         min_value=0., value=3., step=1.)
-
-        latitude = st.number_input('Latitude du secteur',
-                                   value=35., step=1.)
-
-        longitude = st.number_input('Longitude du secteur',
-                                    value=-119., step=1.)
-
-        predict_btn = st.button('Prédire')
     elif page == "Charger donnees":
         st.title('Charger un nouveau lot de dossiers clients')
         uploaded_file = st.file_uploader('Charger un fichier de donnees', type='csv')
@@ -61,19 +77,23 @@ def main():
                     processed_new_data = mkn.full_feature_engineering(df_input=dataframe, df_folder='./input_data/',
                                                                       encoding_treshold=0.04, nan_treshold=0.4)
                 st.success("Nouvelles donnees traitees pour prediction")
-                processed_new_data.to_csv(CURRENT_DATA_PATH)
-    elif page == "Predire lot":
-        st.title('Generer les predictions pour un lot de dosssier')
-        if os.path.exists(CURRENT_DATA_PATH):
-            date_creation_fichier = time.ctime(os.path.getctime(CURRENT_DATA_PATH))
-            st.write("Date de creation du dernier fichier : " + str(date_creation_fichier))
-            predict_btn = st.button('Generer predictions')
-            if predict_btn:
-                with st.spinner("Operation en cours..."):
-                    time.sleep(1)
-                st.success("Un jeu de donnees predites a ete genere")
-        else:
-            st.markdown("Aucun jeu de donnees n'a encore ete charge. Utilisez la navigation pour charger un fichier")
+                processed_new_data.to_csv(PREPROCESSED_DATA_PATH, index=False)
+                dataframe.to_csv(ORIGINAL_DATA_PATH, index=False)
+    # elif page == "Predire lot":
+    #     st.title('Generer les predictions pour un lot de dosssier')
+    #     if os.path.exists(PREPROCESSED_DATA_PATH):
+    #         date_creation_fichier = time.ctime(os.path.getctime(PREPROCESSED_DATA_PATH))
+    #         st.write("Date de creation du dernier fichier : " + str(date_creation_fichier))
+    #         predict_btn = st.button('Generer predictions')
+    #         if predict_btn:
+    #             with st.spinner("Operation en cours..."):
+    #                 current_data = pd.read_csv(PREPROCESSED_DATA_PATH)
+    #                 current_data = current_data.drop(columns=['SK_ID_CURR'])
+    #                 # pred_results = make_predictions_lot(current_data.values, current_data.columns, MODEL_URI)
+    #                 st.write(pred_results)
+    #             st.success("Un jeu de donnees predites a ete genere")
+    #     else:
+    #         st.markdown("Aucun jeu de donnees n'a encore ete charge. Utilisez la navigation pour charger un fichier")
 
     else:
         st.markdown("This page is not implemented yet :no_entry_sign:")
