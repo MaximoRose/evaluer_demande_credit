@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import os
 
 DEFAULT_CATEGORY_MEAN_FREQ = 0.03
 DEFAULT_MAX_PERCENTAGE_NAN_VAL = 0.3
@@ -128,7 +129,9 @@ def get_highly_correlated_features(df, threshold):
     # Display the dataframe with highly correlated features
     return correlation_results
 
-def display_barchart_bivar_correlation(df_poids, col_nom = 'feature', col_corr='poids', variable_ref='TARGET', coef='Pearson') :
+
+def display_barchart_bivar_correlation(df_poids, col_nom='feature', col_corr='poids', variable_ref='TARGET',
+                                       coef='Pearson'):
     feat_corrs = df_poids
     plt.figure(figsize=(14, 10))
     sns.color_palette("rocket", as_cmap=True)
@@ -138,9 +141,9 @@ def display_barchart_bivar_correlation(df_poids, col_nom = 'feature', col_corr='
     # Setting the label for x-axis
     plt.xlabel("FEATURES")
     # Setting the label for y-axis
-    plt.ylabel("Coef / "+variable_ref)
+    plt.ylabel("Coef / " + variable_ref)
     # Setting the title for the graph
-    plt.title("Coefficients de correlation ("+coef+")")
+    plt.title("Coefficients de correlation (" + coef + ")")
     plt.xticks(rotation=90)
     plt.show()
     return
@@ -199,3 +202,78 @@ def reduce_memory(df):
     memory_reduction = 100 * (start_mem - end_mem) / start_mem
     # print('Final memory usage is: {:.2f} MB - decreased by {:.1f}%'.format(end_mem, memory_reduction))
     return df
+
+
+#################################################################################
+# ---------------------------------- WORKING WITH QCUTS
+#################################################################################
+def get_qcut_of_columns(idf, colonne, nbcuts=4):
+    """ Pour une colonne, retourne un dataframe, trie par ordre croissant contenant les categories et leur limites suite a un qcut de taille nbcuts
+    colonne_qcuts : Les intervals pandas definis par la fonction qcuts
+    left_value : La valeur min de l'interval
+    right_value : La valeur max de l'interval
+    """
+    res_df = pd.DataFrame()
+    try:
+        res_df['colonne_qcuts'] = pd.qcut(idf[colonne], nbcuts).unique()
+        res_df['left_value'] = res_df.colonne_qcuts.map(lambda x: x.left)
+        res_df['right_value'] = res_df.colonne_qcuts.map(lambda x: x.right)
+        res_df = res_df.sort_values(by=['left_value'], ascending=True)
+    except:
+        print("Impossible de proceder au qcut pour la colonne : ", colonne)
+    return res_df
+
+
+def get_cat_for_obs(obs, colonne, qcuts_df):
+    resulting_cat = 1
+    exceeded_limits = False
+    try:
+        current_value = obs[colonne]
+    except:
+        resulting_cat = np.nan
+        exceeded_limits = True
+        return resulting_cat, exceeded_limits
+    cnt = 1
+    for (borne_inf, borne_sup) in zip(qcuts_df['left_value'].values.tolist(), qcuts_df['right_value'].values.tolist()):
+        if (cnt == 1) & (current_value < borne_inf):
+            resulting_cat = 1
+            exceeded_limits = True
+            break
+        elif (cnt == (qcuts_df.shape[0])) & (current_value > borne_sup):
+            resulting_cat = qcuts_df.shape[0]
+            exceeded_limits = True
+            break
+        elif (current_value > borne_inf) & (current_value <= borne_sup):
+            resulting_cat = cnt
+            break
+        else:
+            cnt += 1
+    return resulting_cat, exceeded_limits
+
+
+def list_files_in_folder(folder_path):
+    files = []
+    for file_name in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, file_name)
+        if os.path.isfile(file_path):
+            files.append(file_name)
+    return files
+
+
+def get_radar_values(obs, path_to_qcuts_df):
+    exceeds_train = False
+    output_dict = {}
+    lst_files = list_files_in_folder(path_to_qcuts_df)
+    for file in lst_files:
+        feat_name = file.split('.')[0]
+        qcut_df = pd.read_csv(path_to_qcuts_df + file)
+        cat, ex_cat = get_cat_for_obs(obs, feat_name, qcut_df)
+        output_dict[feat_name] = cat
+        if ex_cat:
+            exceeds_train = True
+
+    if exceeds_train:
+        output_dict['ExceedsKnownData'] = 1
+    else:
+        output_dict['ExceedsKnownData'] = 0
+    return output_dict

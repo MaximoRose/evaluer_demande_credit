@@ -23,9 +23,9 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 list_of_feature_toRem = \
     ['CODE_GENDER',  # I dont want a model that stigmatize. No interest in doing so
-     # 'EXT_SOURCE_2',  # Highly correlated to target, yet we have no info on what it is
-     # 'EXT_SOURCE_3',  # Highly correlated to target, yet we have no info on what it is
-     # 'EXT_SOURCE_1',  # Highly correlated to target, yet we have no info on what it is
+     'EXT_SOURCE_2',  # Highly correlated to target, yet we have no info on what it is
+     'EXT_SOURCE_3',  # Highly correlated to target, yet we have no info on what it is
+     'EXT_SOURCE_1',  # Highly correlated to target, yet we have no info on what it is
      'NAME_TYPE_SUITE',
      # Judgemental : I will not explain to a customer, they cannot have a loan because they came with their child...
      'DAYS_LAST_PHONE_CHANGE',  # I don't see myself explaining it to a client
@@ -189,7 +189,7 @@ def process_application(df, encoding_treshold=DEFAULT_CATEGORY_MEAN_FREQ,
     # docs = [f for f in df.columns if 'FLAG_DOC' in f]
     # df.loc[:, 'DOCUMENT_COUNT'] = df[docs].sum(axis=1)
     # # Categorical age - based on target=1 plot
-    # df.loc[:, 'AGE_RANGE'] = df['DAYS_BIRTH'].apply(lambda x: get_age_label(x))
+    df.loc[:, 'AGE_RANGE'] = df['DAYS_BIRTH'].apply(lambda x: get_age_label(x))
 
     # Credit ratios
     df.loc[:, 'CREDIT_TO_ANNUITY_RATIO'] = df['AMT_CREDIT'] / df['AMT_ANNUITY']
@@ -211,6 +211,7 @@ def process_application(df, encoding_treshold=DEFAULT_CATEGORY_MEAN_FREQ,
     # list_of_feature_toRem.append('AMT_ANNUITY')
     # Highly Correlated to our new ratio
     list_of_feature_toRem.append('AMT_CREDIT')
+    list_of_feature_toRem.append('DAYS_BIRTH')
 
     # Enlever les colonnes qu'on desire enlever
     col_to_keep = [col for col in df.columns.tolist() if col not in list_of_feature_toRem]
