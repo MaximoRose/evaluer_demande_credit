@@ -12,6 +12,7 @@ from outils_general_810 import list_files_in_folder
 from outils_feature_engineering_810 import get_cat_for_obs
 
 
+SAMPLE_DATA_PATH = './st_content/sample_data.csv'
 PREPROCESSED_DATA_PATH = './st_content/processed_new_data.csv'
 ORIGINAL_DATA_PATH = './st_content/original_data.csv'
 CUSTOM_CSS = './st_content/style.css'
@@ -175,10 +176,16 @@ def main():
     # st.sidebar.image("assets/logo.png", width=100)
     if page == "Evaluer un dossier":
         st.title('Predire la solvabilité client·e')
-        if os.path.exists(PREPROCESSED_DATA_PATH):
-            date_creation_fichier = time.ctime(os.path.getctime(PREPROCESSED_DATA_PATH))
-            st.write("Data's date : " + str(date_creation_fichier))
-            current_data = pd.read_csv(PREPROCESSED_DATA_PATH)
+        if os.path.exists(SAMPLE_DATA_PATH) :
+
+            if os.path.exists(PREPROCESSED_DATA_PATH):
+                date_creation_fichier = time.ctime(os.path.getctime(PREPROCESSED_DATA_PATH))
+                st.write("Data's date : " + str(date_creation_fichier))
+                current_data = pd.read_csv(PREPROCESSED_DATA_PATH)
+            else:
+                st.write("Utilisation du fichier Sample. Chargez votre fichier pour des donneees specifiques")
+                current_data = pd.read_csv(SAMPLE_DATA_PATH)
+
             sk_id_combo = st.selectbox("Selectionnez l'identifiant client : ",
                                        current_data['SK_ID_CURR'].values.tolist())
             if sk_id_combo is not None :
@@ -238,21 +245,6 @@ def main():
                 st.success("Nouvelles donnees traitees pour prediction")
                 processed_new_data.to_csv(PREPROCESSED_DATA_PATH, index=False)
                 dataframe.to_csv(ORIGINAL_DATA_PATH, index=False)
-    # elif page == "Predire lot":
-    #     st.title('Generer les predictions pour un lot de dosssier')
-    #     if os.path.exists(PREPROCESSED_DATA_PATH):
-    #         date_creation_fichier = time.ctime(os.path.getctime(PREPROCESSED_DATA_PATH))
-    #         st.write("Date de creation du dernier fichier : " + str(date_creation_fichier))
-    #         predict_btn = st.button('Generer predictions')
-    #         if predict_btn:
-    #             with st.spinner("Operation en cours..."):
-    #                 current_data = pd.read_csv(PREPROCESSED_DATA_PATH)
-    #                 current_data = current_data.drop(columns=['SK_ID_CURR'])
-    #                 # pred_results = make_predictions_lot(current_data.values, current_data.columns, MODEL_URI)
-    #                 st.write(pred_results)
-    #             st.success("Un jeu de donnees predites a ete genere")
-    #     else:
-    #         st.markdown("Aucun jeu de donnees n'a encore ete charge. Utilisez la navigation pour charger un fichier")
 
     else:
         st.markdown("This page is not implemented yet :no_entry_sign:")

@@ -2,6 +2,7 @@
     background-color: red;
     color: white;
     text-align: center;
+    font-size:24px;
 }
 
 .ok_customer{
@@ -9,4 +10,5 @@
     margin-right: auto;
     background-color: green;
     color: white;
+    font-size:24px;
 }
