@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 
 # Ce code est lance depuis la racine GitHub Actions
-SAMPLE_DATA_PATH = './st_content/bad_sample_data.csv'
+SAMPLE_DATA_PATH = './st_content/sample_data.csv'
 
 API_URI = "https://oc-ds-p7.herokuapp.com/solvability_prediction"
 
