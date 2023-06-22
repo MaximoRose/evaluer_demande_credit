@@ -2,7 +2,8 @@ import json
 import requests
 import pandas as pd
 
-SAMPLE_DATA_PATH = './../st_content/sample_data.csv'
+# Ce code est lance depuis la racine GitHub Actions
+SAMPLE_DATA_PATH = './st_content/sample_data.csv'
 
 API_URI = "https://oc-ds-p7.herokuapp.com/solvability_prediction"
 

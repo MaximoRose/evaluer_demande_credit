@@ -2,7 +2,7 @@ import json
 import requests
 import pandas as pd
 
-SAMPLE_DATA_PATH = './../st_content/sample_data.csv'
+SAMPLE_DATA_PATH = './st_content/sample_data.csv'
 
 
 API_URI = "https://oc-ds-p7.herokuapp.com/get_shap_force"
