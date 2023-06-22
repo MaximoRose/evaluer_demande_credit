@@ -18,8 +18,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Test with pytest
+      - name: Testing predict API
         run: |
-          pytest test_sample.py
+          pytest ./unitests/api_predict.py
+      - name: Testing shap API
+        run: |
+          pytest ./unitests/api_shap.py
+      - name: Testing preprocess API
+        run: |
+          pytest ./unitests/api_preprocess.py
 
 

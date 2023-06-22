@@ -9,6 +9,5 @@
 /model_outputs
 /mlruns
 /cours
-/st_content
-
-
+/st_content/original_data.csv
+/st_content/processed_new_data.csv

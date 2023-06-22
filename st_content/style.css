@@ -1,0 +1,12 @@
+.nok_customer{
+    background-color: red;
+    color: white;
+    text-align: center;
+}
+
+.ok_customer{
+    margin-left: auto;
+    margin-right: auto;
+    background-color: green;
+    color: white;
+}

@@ -7,8 +7,9 @@ import json
 import requests
 import numpy as np
 import plotly.express as px
-from outils_feature_engineering_810 import get_radar_values
 import matplotlib.pyplot as plt
+from outils_general_810 import list_files_in_folder
+from outils_feature_engineering_810 import get_cat_for_obs
 
 
 PREPROCESSED_DATA_PATH = './st_content/processed_new_data.csv'
@@ -55,18 +56,36 @@ def get_preprocessed_data(lst_columns, associated_data):
 # ---------------------------------------------------------------------------------
 # FONCTIONS DE TRAITEMENTS LOCAUX
 # ---------------------------------------------------------------------------------
+def dict_to_pd(data):
+    df = pd.DataFrame.from_dict(data, orient='index', columns=['values'])
+    df = df.reset_index()
+    df.columns = ['features', 'values']
+    return df
+
+
+def get_radar_values(obs, path_to_qcuts_df):
+    exceeds_train = False
+    output_dict = {}
+    lst_files = list_files_in_folder(path_to_qcuts_df)
+    for file in lst_files:
+        feat_name = file.split('.')[0]
+        qcut_df = pd.read_csv(path_to_qcuts_df + file)
+        cat, ex_cat = get_cat_for_obs(obs, feat_name, qcut_df)
+        output_dict[feat_name] = cat
+        if ex_cat:
+            exceeds_train = True
+
+    if exceeds_train:
+        output_dict['ExceedsKnownData'] = 1
+    else:
+        output_dict['ExceedsKnownData'] = 0
+    return output_dict
+
 
 
 def get_rad_val(application, ref_folder=TOP_FEATURES_FILES):
     dict_radar_values = get_radar_values(application, ref_folder)
     return dict_radar_values
-
-
-def turn_output_dict_to_pd(data):
-    df = pd.DataFrame.from_dict(data, orient='index', columns=['values'])
-    df = df.reset_index()
-    df.columns = ['features', 'values']
-    return df
 
 
 # ---------------------------------------------------------------------------------
@@ -195,7 +214,7 @@ def main():
                         shap_force = get_shap_force(lst_columns=liste_colonnes,
                                                     associated_data=data_client.tolist()[0])
 
-                        df_shape_force = turn_output_dict_to_pd(shap_force)
+                        df_shape_force = dict_to_pd(shap_force)
 
                         fig = plot_top_x_bar(df_shape_force, colname_name='features', colvalue_name='values')
                         st.write(fig)
