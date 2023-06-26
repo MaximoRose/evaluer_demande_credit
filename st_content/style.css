@@ -1,14 +1,19 @@
-.nok_customer{
-    background-color: red;
-    color: white;
-    text-align: center;
+.text_result{
     font-size:24px;
 }
 
+.nok_customer{
+    /* background-color: red;
+    color: white; */
+    font-weight: bold;
+}
+
 .ok_customer{
-    margin-left: auto;
-    margin-right: auto;
-    background-color: green;
-    color: white;
-    font-size:24px;
+    /* background-color: green;
+    color: white; */
+    font-weight: bold;
+}
+
+.warning_mess{
+    font-size:18px;
 }
