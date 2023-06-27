@@ -314,6 +314,8 @@ def main():
 
     elif page == "Charger donnees":
         st.title('Charger un nouveau lot de dossiers clients')
+        str_nb = "<span class='text_result'> N.B : Cette fonction est pour l'instant indisponible dans la version cloud, car elle nécessite d'accéder à des fichiers trop volumineux (e.g : installments_payments.csv) pour être déposés dans les versions gratuites des plateformes actuellement utilisées.</span>"
+        st.markdown(str_nb, unsafe_allow_html=True)
         uploaded_file = st.file_uploader('Charger un fichier de donnees', type='csv')
         if uploaded_file is not None:
             dataframe = pd.read_csv(uploaded_file)

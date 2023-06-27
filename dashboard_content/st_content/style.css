@@ -1,0 +1,19 @@
+.text_result{
+    font-size:24px;
+}
+
+.nok_customer{
+    /* background-color: red;
+    color: white; */
+    font-weight: bold;
+}
+
+.ok_customer{
+    /* background-color: green;
+    color: white; */
+    font-weight: bold;
+}
+
+.warning_mess{
+    font-size:18px;
+}

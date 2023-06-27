@@ -224,6 +224,9 @@ def get_qcut_of_columns(idf, colonne, nbcuts=4):
 
 
 def get_cat_for_obs(obs, colonne, qcuts_df):
+    """
+    Pour une observation (obs), et pour une variable (colonne), retourne le quartile dans lequel elle serait positionnée vis-à-vis du dataset d'entraînement.
+    """
     resulting_cat = 1
     exceeded_limits = False
     try:
