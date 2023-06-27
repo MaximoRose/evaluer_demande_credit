@@ -6,7 +6,7 @@ __Attention :__
 
 
 ## Les dossiers
-- __./.github/workflows/ : Contient le fichier .yml qui définit la séquence d'actions à lancé lorsque le repo est poussé dans GitHub__
+- __./.github/workflows/ : Contient le fichier .yml qui définit la séquence d'actions à lancer lorsque le repo est poussé dans GitHub__
 - ./.pytest_cache/ : Dossier automatiquement généré par pytest, mais non inclus dans le repo GitHub
 - __./.streamlit/ : contient un fichier de config .toml qui peut permettre de modifier l'interface graphique de streamlit.__ 
 - __./api_content/ : copie du contenu du repo dédié à l'API utilisé par Heroku__
@@ -20,19 +20,20 @@ __Attention :__
 
 ## Jupyter principaux
 Ce repository est le dossier de travail principal pour le projet OC_DS_P07. Il contient une série de Jupyter Numérotés, dont l'ordre correspond aux étapes suivies pour l'amélioration continue du modèle :
-0. Kernel Kaggle Analysis : repartir des kernel Kaggle pour revoir les features les plus importantes 
-1. Analyse des corrélations : pour étudier plus en détails les corrélations entre les variables et à la target, afin de pouvoir les filtrer.
-2. Dummy Classifier : pour disposer d'une référence en termes de métriques de qualité du modèle.
-3. Logisitic Regression : Le fichier d'exécution et d'analyse des performances de la régression logistique.
-3. Random Forest : De même pour la Random Forest
-3. XGBoost : idem pour XGBoost.
-4. Feature importance in Models : est une analyse de la feature importance globale pour les modèles non retenus, mais qui ont servi la construction du projet (LogReg & Random Forest)
-4. Feature importance XGBoost : est l'analyse tant globale que locale des feature importances pour XGBoost.
-5. Déploiement model : sert à isoler et produire les éléments nécessaires aux deux interfaces qui seront ensuite à mettre en production : l'interface graphique pour les utilisateurs (GUI / dashboard) ; l'interface de programmation d'application (API)
+
+- 0 - Kernel Kaggle Analysis : repartir des kernel Kaggle pour revoir les features les plus importantes 
+- 1 - Analyse des corrélations : pour étudier plus en détails les corrélations entre les variables et à la target, afin de pouvoir les filtrer.
+- 2 - Dummy Classifier : pour disposer d'une référence en termes de métriques de qualité du modèle.
+- 3 - Logisitic Regression : Le fichier d'exécution et d'analyse des performances de la régression logistique.
+- 3 - Random Forest : De même pour la Random Forest
+- 3 - XGBoost : idem pour XGBoost.
+- 4 - Feature importance in Models : est une analyse de la feature importance globale pour les modèles non retenus, mais qui ont servi la construction du projet (LogReg & Random Forest)
+- 4 - Feature importance XGBoost : est l'analyse tant globale que locale des feature importances pour le modèle XGBoost en production.
+- 5 - Déploiement model : sert à isoler et produire les éléments nécessaires aux deux interfaces qui seront ensuite à mettre en production : l'interface graphique pour les utilisateurs (GUI / dashboard) ; l'interface de programmation d'application (API)
 
 ## Fichiers python principaux
 ### Le dashboard
-Appelé 6_dashboard.py, comme la sixième étape suivant celles ci-dessus, ce fichier peut-être lancé via la commande : " streamlit run 6_dashboard.py "
+Appelé 6_dashboard.py, comme la sixième étape suivant celles ci-dessus, ce fichier peut être lancé via la commande : ``` streamlit run 6_dashboard.py ```
 
 ### Preprocessing des donnes custom (.py)
 - __mbr_kernel.py :__ Ensemble de fonctions de preprocessing des donnees, i.e feature engineering, cleaning, etc.
