@@ -1,8 +1,52 @@
 # Evaluer des demandes de prets.
 
+## Mission.
+A partir des donnees fournies par un organisme de Credit, nous allons concevoir un modele capable de predire la capacite d'une personne a rembourser son credit.
+
+- Le suivi des tests des modeles sera realise dans MLFlow. Les meilleurs modeles seront sauvegardes dans le registre.
+- L'evaluation des perfoamance sera realise avec le F2-score, afin de respecter les enjeux metiers.
+- Le Data drift eventuel sera evalue avec Evidently et des axes de compensation seront proposes.
+- Nous deploierons le modele choisi sur Heroku pour le rendre accessible via API.
+- Nous developperons une interface graphique pour les utilisateurs et utilisatrices via Streamlit. Nous utiliserons des modeles d'inference pour expliquer les resultats retournes par notre modele principal.
+- GitHub Actions permettra d'automatiser les tests de coherences entre l'API et le tableau de bord.
+
+La structure de donnees est la suivante :
+
+![structure des donnees](https://maximorose.eu/datascience_gh_ress/p7_structure_donnees.png)
+
+
+## Remarque RGPD & Feature Engineering.
+La quantite de donnees personnelles soumises par l'organisme de credit est immense... Il y a le sexe, le situation familiale, le nombre d'enfants, l'employeur, les accompagnants de la personne lors du rendez-vous avec le conseiller, le type de logement, etc.
+
+Cela pose plusieurs probleme :
+1. D'un point de vue de la reglementation europeenne, on n'est sense collecter et traiter seulement les donnees necessaires a la delivrance du service mis en place. Or, l'etude du coefficient de correlation de ces variables a notre cible montre qu'elles sont pour la plupart peu utiles.
+2. Concernant celles qui pourraient aider notre modeles a prendre des decisions, comme le sexe, elles favorisent un apprentissage discriminant. Le modele va apprendre de nos biais societaux pour les reproduire.
+
+J'ai donc fait le choix de retirer toute donnee socio-demographique pour que le modele n'apprenne que sur des donnees d'historique bancaire.
+
+La precision des modeles sera legerement reduites, mais leur rapidite augmentee, puisque nous reduisons ainsi la dimensionnalite.
+
+Par ailleurs, nombre de features sont correlees les unes aux autres et d'autres presentent une tres grande part de valeur manquante. Ainsi, dans un premier temps, on fera le choix d'enlever toutes ces features qui troubleraient l'explicabilite des resultats.
+
+Notre feature engineering suivra donc les principes suivants :
+
+![feature engineering projet](https://maximorose.eu/datascience_gh_ress/p7_FE_custom.png)
+
+
 __Attention :__ 
-- Pour pouvoir exécuter les codes présents dans ce repo, il est nécessaire de créer d'abord un dossier "input_data" dans lequel déposer les fichiers .csv du projet Kaggle. Ces fichiers étant très volumineux, il nous était impossible de les référencer dans GitHub ou de les déposer sur la plateforme OC.
+- Pour pouvoir exécuter les codes présents dans ce repo, il est nécessaire de créer d'abord un dossier "input_data" dans lequel déposer les fichiers .csv du projet Kaggle. Ces fichiers étant très volumineux, il nous était impossible de les référencer dans GitHub.
 - Pour ces mêmes raisons, nous ne pourrons vous mettre à disposition l'ensemble des tests réalisés via MLFlow. Nous  nous contenterons donc de laisser seulement quelques éléments pertinent qui permettent de constater les enregistrements spécifiques pour les GridSearch et les "Best Models"
+
+
+## Architecture du projet.
+
+La production du projet se divise en 3 repository, mais ce repository regroupe l'ensemble des codes necessaires.
+
+- L'interface graphique est accessible sur streamlit mais s'appuie sur un repository dedie.
+- De meme, l'API est hebergee sur Heroku, mais s'appuie, elle-aussi, sur un repository dedie.
+
+![architecture projet globale](https://maximorose.eu/datascience_gh_ress/p7_archi_global.png)
+
 
 
 ## Les dossiers
